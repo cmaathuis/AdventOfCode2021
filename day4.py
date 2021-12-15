@@ -7,7 +7,6 @@ class Board:
     def __init__(self, board_values: str):
         self.board_values = board_values
         self.rows = []
-        self.has_won = False
         self._populate_board()
 
     def _populate_board(self):
@@ -17,14 +16,15 @@ class Board:
         for row in self.rows:
             win = True
             for value in row:
-                if value[1] == False:
+                win = value[1]
+                if not win:
                     break
             if win:
                 return win
         return win
 
     def check_columns(self):
-        for i in range(len(self.rows)):
+        for i in range(len(self.rows[0])):
             win = True
             for row in self.rows:
                 win = row[i][1]
@@ -32,15 +32,13 @@ class Board:
                     break
             if win:
                 break
-        self.has_won = win  # should return
+        return win  # should return
 
     def check_diagonals(self):
         pass
 
     def check_for_win(self):
-        self.check_rows()
-        self.check_columns()
-        self.check_diagonals()  # should return
+        return self.check_rows() or self.check_columns()
 
     def mark_board(self, number: int):
         # print("Marking number: ", number)
@@ -48,7 +46,7 @@ class Board:
             for value in row:
                 if value[0] == number:
                     value[1] = True
-        self.check_for_win()
+        return self.check_for_win()
 
     def sum_unmarked_values(self):
         sum = 0
@@ -60,23 +58,31 @@ class Board:
 
     def __str__(self):
         board_string = "___RESULTS_2D_ARRAY____\n"
-        board_string += str(self.rows)
+        for row in self.rows:
+            board_string += f"{row}\n"
         board_string += "\n ______________________\n"
         board_string += "\n __________board#____________\n,"
         return board_string
 
 
-def mark_boards(boards: Board, card: int):
-    for board in boards:
-        board.mark_board(card)
-        if board.has_won:
-            return board
-    return None
+def mark_boards(boards, card: int):
+    # print(boards[0])
+    winning_boards = []
+    boards_to_discard = []
+    for i, board in enumerate(boards):
+        has_won = board.mark_board(card)
+        if has_won:
+            boards_to_discard.append(i)
+            winning_sum = board.sum_unmarked_values()
+            winning_boards.append((winning_sum, card))
+    for discard in reversed(boards_to_discard):
+        boards.pop(discard)
+    return winning_boards
 
 
-def calc_winning_board(board: Board, card: int):
-    sum = board.sum_unmarked_values()
-    print(card * sum)
+def calc_winning_board(winning_pair) -> int:
+    print(f"Card: {winning_pair[1]}, Sum: {winning_pair[0]}")
+    return winning_pair[1] * winning_pair[0]
 
 
 def format_input(input_text: str):
@@ -91,14 +97,15 @@ def format_input(input_text: str):
 
 def day4(input_text: str):
     game_input = format_input(input_text)
-    board = None
-    last_card = 0
+    winning_boards = []
     for card in game_input[1]:
-        board = mark_boards(game_input[0], card)
-        if board != None:
-            break
-        last_card = card
-    if board == None:
+        new_marked_boards = mark_boards(game_input[0], card)
+        if new_marked_boards:
+            winning_boards += new_marked_boards
+    if winning_boards == None:
         print("No winner!")
     else:
-        calc_winning_board(board, last_card)
+        first_win = calc_winning_board(winning_boards[0])
+        last_win = calc_winning_board(winning_boards[-1])
+        print(f"Value of the first winning board {first_win}")
+        print(f"Value of the last winning board {last_win}")

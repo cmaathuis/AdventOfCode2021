@@ -5,7 +5,7 @@ import os
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Enter a day: ")
-    parser.add_argument("-d", "--day", type=int, choices=range(1, 12))
+    parser.add_argument("-d", "--day", type=int, choices=range(1, 26))
     args = parser.parse_args()
     validate_args(parser, args)
     return args
@@ -37,7 +37,7 @@ def execute_day(day: int, input_text: str):
 
 def main():
     args = parse_args()
-    input_text = read_input_file(args.day)
+    input_text = read_input_file(args.day).strip()
     execute_day(args.day, input_text)
 
 
